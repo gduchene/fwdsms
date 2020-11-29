@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: © 2020 Grégoire Duchêne <gduchene@awhk.org>
+# SPDX-License-Identifier: ISC
+
+[Unit]
+Description=SMS-to-email Forwarder
+
+[Service]
+ExecStart=fwdsms
+DynamicUser=true
+RuntimeDirectory=fwdsms
+
+[Install]
+WantedBy=multi-user.target

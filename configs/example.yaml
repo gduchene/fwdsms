@@ -1,0 +1,20 @@
+message:
+  from: foo@example.com
+  to: bar@example.com
+  subject: New SMS From {{.From}} For {{.To}}
+  template: |
+    From: {{.From}}
+      To: {{.To}}
+    Date: {{.Date}}
+
+    {{.Message}}
+
+smtp:
+  hostname: example.com:465
+  username: bar
+  password: some password
+
+twilio:
+  address: /run/fwdsms/socket
+  authToken: some token
+  endpoint: /
