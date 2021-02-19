@@ -63,11 +63,11 @@ func (h *smsHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 
 func (h *smsHandler) checkRequestSignature(req *http.Request) error {
 	reqSig, err := func() ([]byte, error) {
-		h, ok := req.Header["X-Twilio-Signature"]
-		if !ok || len(h) == 0 {
+		h := req.Header.Get("X-Twilio-Signature")
+		if len(h) == 0 {
 			return nil, errors.New("missing X-Twilio-Signature header")
 		}
-		b, err := base64.StdEncoding.DecodeString(h[0])
+		b, err := base64.StdEncoding.DecodeString(h)
 		if err != nil {
 			return nil, errors.New("bad X-Twilio-Signature header")
 		}
