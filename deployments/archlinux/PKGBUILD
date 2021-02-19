@@ -2,24 +2,25 @@
 # SPDX-License-Identifier: ISC
 
 # Maintainer: Grégoire Duchêne <gduchene@awhk.org>
+
 pkgname=fwdsms
-pkgver=0.1
-pkgrel=1
+pkgver=0.1.0
+pkgrel=2
 arch=(x86_64)
 url=https://github.com/gduchene/fwdsms
 license=(custom:ISC)
 makedepends=(go)
-source=(git://github.com/gduchene/fwdsms.git)
+source=(git://github.com/gduchene/fwdsms.git#tag=v${pkgver})
 sha256sums=(SKIP)
 
 build() {
-  cd ${pkgname}/cmd/${pkgname}
-  go build
+  cd ${pkgname}
+  go build ./cmd/${pkgname}
 }
 
 package() {
   cd ${pkgname}
-  install -Dm755 cmd/${pkgname}/${pkgname} ${pkgdir}/usr/bin/${pkgname}
+  install -Dm755 ${pkgname} ${pkgdir}/usr/bin/${pkgname}
   install -Dm644 configs/example.yaml ${pkgdir}/etc/${pkgname}.yaml
   install -Dm644 deployments/systemd/${pkgname}.service ${pkgdir}/usr/lib/systemd/system/${pkgname}.service
   install -Dm644 LICENSE ${pkgdir}/usr/share/licenses/${pkgname}/LICENSE
