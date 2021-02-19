@@ -90,7 +90,7 @@ func (h *smsHandler) checkRequestSignature(req *http.Request) error {
 		for i := range parts {
 			parts[i] += req.PostForm[parts[i]][0]
 		}
-		blob := req.Host + req.RequestURI + strings.Join(parts, "")
+		blob := req.Host + req.URL.Path + strings.Join(parts, "")
 		if req.URL.Scheme != "" {
 			blob = fmt.Sprintf("%s://%s", req.URL.Scheme, blob)
 		}
