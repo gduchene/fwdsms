@@ -4,10 +4,10 @@
 FROM golang:1.15
 WORKDIR /root
 COPY . ./
-RUN go install ...
+RUN go build ./cmd/fwdsms
 
 FROM scratch
-COPY --from=0 /go/bin/fwdsms /usr/bin/fwdsms
+COPY --from=0 /root/fwdsms /fwdsms
 
-EXPOSE 8008
-ENTRYPOINT ["/usr/bin/fwdsms"]
+EXPOSE 8080
+ENTRYPOINT ["/fwdsms"]
