@@ -14,7 +14,10 @@ import (
 	"time"
 
 	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 	"golang.org/x/sys/unix"
+
+	"go.awhk.org/fwdsms/pkg/twilio"
 )
 
 var cfgFilename = flag.String("c", "/etc/fwdsms.yaml", "configuration file")
@@ -30,10 +33,19 @@ func main() {
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, unix.SIGTERM)
 
-	sms := make(chan SMS)
-	mux := http.NewServeMux()
-	mux.Handle(cfg.Twilio.Endpoint, handlers.ProxyHeaders(newSMSHandler(cfg, sms)))
-	srv := http.Server{Handler: mux}
+	sms := make(chan twilio.SMS)
+
+	r := mux.NewRouter()
+	r.Path(cfg.Twilio.Endpoint).
+		Methods(http.MethodPost).
+		Handler(handlers.ProxyHeaders(&twilio.Filter{
+			AuthToken: cfg.Twilio.AuthToken,
+			Handler: &twilio.SMSTee{
+				Chan:    sms,
+				Handler: twilio.EmptyResponseHandler,
+			},
+		}))
+	srv := http.Server{Handler: r}
 	go func() {
 		var (
 			l   net.Listener

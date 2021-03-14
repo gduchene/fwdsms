@@ -30,7 +30,7 @@ type SMTP struct {
 
 type Twilio struct {
 	Address   string `yaml:"address"`
-	AuthToken string `yaml:"authToken"`
+	AuthToken []byte `yaml:"authToken"`
 	Endpoint  string `yaml:"endpoint"`
 }
 

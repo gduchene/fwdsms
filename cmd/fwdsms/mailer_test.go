@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
+	"go.awhk.org/fwdsms/pkg/twilio"
 )
 
 func TestMailer_newEmail(t *testing.T) {
@@ -19,12 +21,17 @@ func TestMailer_newEmail(t *testing.T) {
 			Subject: "New SMS From {{.From}}",
 			Template: `From: {{.From}}
   To: {{.To}}
-Date: {{.Date.UTC}}
+Date: {{.DateReceived.UTC}}
 
-{{.Message}}`,
+{{.Body}}`,
 		}}, nil)
 	// Reserved phone numbers, see Ofcom's website.
-	sms := SMS{time.Unix(0, 0), "+442079460123", "+447700900123", "Hello World!"}
+	sms := twilio.SMS{
+		DateReceived: time.Unix(0, 0),
+		From:         "+442079460123",
+		To:           "+447700900123",
+		Body:         "Hello World!",
+	}
 	wants := email{
 		from: "fwdsms@example.com",
 		to:   "sms+447700900123@example.com",

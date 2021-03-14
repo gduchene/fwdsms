@@ -13,6 +13,8 @@ import (
 	"net/smtp"
 	"text/template"
 	"time"
+
+	"go.awhk.org/fwdsms/pkg/twilio"
 )
 
 type email struct {
@@ -23,7 +25,7 @@ type email struct {
 type mailer struct {
 	auth                      smtp.Auth
 	hostname                  string
-	sms                       <-chan SMS
+	sms                       <-chan twilio.SMS
 	tmplFrom, tmplTo, tmplMsg *template.Template
 }
 
@@ -64,7 +66,7 @@ func (m *mailer) sendEmail(e email) error {
 	return c.Quit()
 }
 
-func (m *mailer) newEmail(sms SMS) email {
+func (m *mailer) newEmail(sms twilio.SMS) email {
 	var from, to, msg bytes.Buffer
 	if err := m.tmplFrom.Execute(&from, sms); err != nil {
 		log.Printf("Failed to apply a template: %v.", err)
@@ -91,7 +93,7 @@ func (m *mailer) start(ctx context.Context) {
 	}
 }
 
-func newMailer(cfg *Config, sms <-chan SMS) *mailer {
+func newMailer(cfg *Config, sms <-chan twilio.SMS) *mailer {
 	if cfg.Message.From == "" {
 		log.Fatal("Missing From field.")
 	}
