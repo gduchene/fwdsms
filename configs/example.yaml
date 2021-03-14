@@ -5,7 +5,7 @@ message:
   template: |
     From: {{.From}}
       To: {{.To}}
-    Date: {{.Date}}
+    Date: {{.DateReceived.UTC}}
 
     {{.Message}}
 
