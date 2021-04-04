@@ -83,7 +83,7 @@ func TestFilter_ServeHTTP(t *testing.T) {
 		r := newRequest(Post)
 		r.Header.Set("X-Twilio-Signature", "dpE7iSS3LEQo72hCT34eBRt3UEI=")
 		th.ServeHTTP(w, r)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Equal(t, http.StatusForbidden, w.Code)
 	})
 }
 
