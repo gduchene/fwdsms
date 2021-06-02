@@ -5,10 +5,11 @@
 
 pkgname=fwdsms
 pkgver=0.2.0
-pkgrel=1
+pkgrel=2
 arch=(x86_64)
 url=https://github.com/gduchene/fwdsms
 license=(custom:ISC)
+backup=(etc/${pkgname}.yaml)
 makedepends=(go)
 source=(git://github.com/gduchene/fwdsms.git#tag=v${pkgver})
 sha256sums=(SKIP)
