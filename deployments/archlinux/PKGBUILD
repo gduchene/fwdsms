@@ -4,8 +4,8 @@
 # Maintainer: Grégoire Duchêne <gduchene@awhk.org>
 
 pkgname=fwdsms
-pkgver=0.1.0
-pkgrel=2
+pkgver=0.2.0
+pkgrel=1
 arch=(x86_64)
 url=https://github.com/gduchene/fwdsms
 license=(custom:ISC)
