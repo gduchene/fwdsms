@@ -25,7 +25,11 @@ var cfgFilename = flag.String("c", "/etc/fwdsms.yaml", "configuration file")
 func main() {
 	flag.Parse()
 	log.SetFlags(0)
-	cfg, err := loadConfig(*cfgFilename)
+	fd, err := os.Open(*cfgFilename)
+	if err != nil {
+		log.Fatalf("Could not open the configuration file: %v.", err)
+	}
+	cfg, err := loadConfig(fd)
 	if err != nil {
 		log.Fatalf("Could not load the configuration: %v.", err)
 	}
@@ -39,7 +43,7 @@ func main() {
 	r.Path(cfg.Twilio.Endpoint).
 		Methods(http.MethodPost).
 		Handler(handlers.ProxyHeaders(&twilio.Filter{
-			AuthToken: cfg.Twilio.AuthToken,
+			AuthToken: []byte(cfg.Twilio.AuthToken),
 			Handler: &twilio.SMSTee{
 				Chan:    sms,
 				Handler: twilio.EmptyResponseHandler,

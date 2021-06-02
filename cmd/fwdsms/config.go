@@ -4,7 +4,7 @@
 package main
 
 import (
-	"io/ioutil"
+	"io"
 
 	"gopkg.in/yaml.v3"
 )
@@ -30,18 +30,14 @@ type SMTP struct {
 
 type Twilio struct {
 	Address   string `yaml:"address"`
-	AuthToken []byte `yaml:"authToken"`
+	AuthToken string `yaml:"authToken"`
 	Endpoint  string `yaml:"endpoint"`
 }
 
-func loadConfig(filename string) (*Config, error) {
-	b, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
+func loadConfig(r io.Reader) (*Config, error) {
+	dec := yaml.NewDecoder(r)
 	cfg := &Config{}
-	err = yaml.Unmarshal(b, cfg)
-	if err != nil {
+	if err := dec.Decode(cfg); err != nil {
 		return nil, err
 	}
 	return cfg, nil
