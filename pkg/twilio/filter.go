@@ -69,11 +69,14 @@ func (th *Filter) CheckRequestSignature(r *http.Request) error {
 
 func (th *Filter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := th.CheckRequestSignature(r); err != nil {
-		log.Println("Failed to check Twilio signature:", err)
-		if err == ErrSignatureMismatch {
-			w.WriteHeader(http.StatusForbidden)
-		} else {
+		log.Printf("Failed to check Twilio signature: %s.", err)
+		switch err {
+		case ErrBase64, ErrMissingHeader:
 			w.WriteHeader(http.StatusBadRequest)
+		case ErrSignatureMismatch:
+			w.WriteHeader(http.StatusForbidden)
+		default:
+			w.WriteHeader(http.StatusInternalServerError)
 		}
 		return
 	}
