@@ -50,7 +50,7 @@ func TestFilter_ServeHTTP(t *testing.T) {
 		w := httptest.NewRecorder()
 		th.ServeHTTP(w, newRequest(Post))
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Equal(t, "text/xml", w.HeaderMap.Get("Content-Type"))
+		assert.Equal(t, "text/xml", w.Result().Header.Get("Content-Type"))
 		assert.Equal(t, "<Response/>", w.Body.String())
 	})
 
@@ -58,7 +58,7 @@ func TestFilter_ServeHTTP(t *testing.T) {
 		w := httptest.NewRecorder()
 		th.ServeHTTP(w, newRequest(Get))
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Equal(t, "text/xml", w.HeaderMap.Get("Content-Type"))
+		assert.Equal(t, "text/xml", w.Result().Header.Get("Content-Type"))
 		assert.Equal(t, "<Response/>", w.Body.String())
 	})
 
