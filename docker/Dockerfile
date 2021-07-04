@@ -4,7 +4,8 @@
 FROM golang:1.16
 WORKDIR /root
 COPY . ./
-RUN CGO_ENABLED=0 go build ./cmd/fwdsms
+ENV CGO_ENABLED=0
+RUN go build
 
 FROM scratch
 COPY --from=0 /root/fwdsms /usr/bin/fwdsms
