@@ -35,7 +35,9 @@ func (m *mailer) sendEmail(e email) error {
 	if err != nil {
 		return err
 	}
-	conn.SetDeadline(time.Now().Add(5 * time.Second))
+	if err := conn.SetDeadline(time.Now().Add(5 * time.Second)); err != nil {
+		log.Printf("Failed to set the SMTP connection deadline: %s.", err)
+	}
 	h, _, _ := net.SplitHostPort(m.hostname)
 	c, err := smtp.NewClient(conn, h)
 	if err != nil {

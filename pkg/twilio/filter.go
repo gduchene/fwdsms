@@ -8,6 +8,7 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"sort"
@@ -55,7 +56,9 @@ func (th *Filter) CheckRequestSignature(r *http.Request) error {
 	}
 	s := r.URL.String() + strings.Join(parts, "")
 	h := hmac.New(sha1.New, th.AuthToken)
-	h.Write([]byte(s))
+	if _, err := h.Write([]byte(s)); err != nil {
+		return fmt.Errorf("failed to write bytes to calculate signature: %s", err)
+	}
 	ourSig := h.Sum(nil)
 
 	if !hmac.Equal(reqSig, ourSig) {
