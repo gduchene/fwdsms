@@ -18,6 +18,7 @@ import (
 	"golang.org/x/sys/unix"
 
 	"go.awhk.org/fwdsms/pkg/twilio"
+	"go.awhk.org/gosdd"
 )
 
 var cfgFilename = flag.String("c", "/etc/fwdsms.yaml", "configuration file")
@@ -49,29 +50,18 @@ func main() {
 				Handler: twilio.EmptyResponseHandler,
 			},
 		}))
+
 	srv := http.Server{Handler: r}
 	go func() {
-		var (
-			l   net.Listener
-			err error
-		)
-		if cfg.Twilio.Address != "" && cfg.Twilio.Address[0] == '/' {
-			if l, err = net.Listen("unix", cfg.Twilio.Address); err != nil {
-				log.Fatalf("Could not set up UNIX listener: %v.", err)
-			}
-			if err = os.Chmod(cfg.Twilio.Address, 0666); err != nil {
-				log.Fatalf("Could not set up permissions on UNIX socket: %v.", err)
-			}
-		} else {
-			if cfg.Twilio.Address == "" {
-				cfg.Twilio.Address = ":8080"
-			}
-			if l, err = net.Listen("tcp", cfg.Twilio.Address); err != nil {
-				log.Fatalf("Could not set up TCP listener: %v.", err)
-			}
+		ln, err := listenSD()
+		if err != nil {
+			log.Fatalf("Failed to listen on systemd socket: %s.", err)
 		}
-		if err = srv.Serve(l); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Failed to serve HTTP: %v.", err)
+		if ln == nil {
+			ln = listenEnv(cfg)
+		}
+		if err = srv.Serve(ln); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Failed to serve HTTP: %s.", err)
 		}
 	}()
 
@@ -86,4 +76,36 @@ func main() {
 	if err := srv.Shutdown(ctx); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Failed to properly shut down the HTTP server: %v.", err)
 	}
+}
+
+func listenEnv(cfg *Config) net.Listener {
+	if cfg.Twilio.Address != "" && cfg.Twilio.Address[0] == '/' {
+		ln, err := net.Listen("unix", cfg.Twilio.Address)
+		if err != nil {
+			log.Fatalf("Could not set up UNIX listener: %s.", err)
+		}
+		if err := os.Chmod(cfg.Twilio.Address, 0666); err != nil {
+			log.Fatalf("Could not set up permissions on UNIX socket: %s.", err)
+		}
+		return ln
+	}
+	ln, err := net.Listen("tcp", cfg.Twilio.Address)
+	if err != nil {
+		log.Fatalf("Could not set up TCP listener: %s.", err)
+	}
+	return ln
+}
+
+func listenSD() (net.Listener, error) {
+	fds, err := gosdd.SDListenFDs(true)
+	if err != nil {
+		if err == gosdd.ErrNoSDSupport {
+			return nil, nil
+		}
+		return nil, err
+	}
+	if len(fds) == 0 {
+		return nil, nil
+	}
+	return net.FileListener(fds[0])
 }

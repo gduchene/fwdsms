@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: © 2021 Grégoire Duchêne <gduchene@awhk.org>
+# SPDX-License-Identifier: ISC
+
+[Unit]
+Description=fwdsms Socket
+
+[Socket]
+ListenStream=%t/fwdsms
+
+[Install]
+WantedBy=sockets.target

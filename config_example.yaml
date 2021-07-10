@@ -15,6 +15,6 @@ smtp:
   password: some password
 
 twilio:
-  address: /run/fwdsms/socket
+  address: 127.0.0.1:8080
   authToken: some token
   endpoint: /

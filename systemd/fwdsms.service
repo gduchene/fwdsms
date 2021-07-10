@@ -7,7 +7,6 @@ Description=SMS-to-email Forwarder
 [Service]
 ExecStart=fwdsms
 DynamicUser=true
-RuntimeDirectory=fwdsms
 
 [Install]
 WantedBy=multi-user.target
