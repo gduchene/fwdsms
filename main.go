@@ -14,9 +14,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
-
+	"go.awhk.org/core"
 	"go.awhk.org/fwdsms/pkg/twilio"
 	"go.awhk.org/gosdd"
 )
@@ -43,18 +41,17 @@ func main() {
 
 	sms := make(chan twilio.SMS)
 
-	r := mux.NewRouter()
-	r.Path(cfg.Twilio.Endpoint).
-		Methods(http.MethodPost).
-		Handler(handlers.ProxyHeaders(&twilio.Filter{
-			AuthToken: []byte(cfg.Twilio.AuthToken),
-			Handler: &twilio.SMSTee{
-				Chan:    sms,
-				Handler: twilio.EmptyResponseHandler,
-			},
-		}))
+	h := core.FilteringHTTPHandler(&twilio.Filter{
+		AuthToken: []byte(cfg.Twilio.AuthToken),
+		Handler: &twilio.SMSTee{
+			Chan:    sms,
+			Handler: twilio.EmptyResponseHandler,
+		},
+	}, core.FilterHTTPMethod(http.MethodPost))
+	m := http.NewServeMux()
+	m.Handle(cfg.Twilio.Endpoint, h)
 
-	srv := http.Server{Handler: r}
+	srv := http.Server{Handler: m}
 	go func() {
 		ln, err := listenSD()
 		if err != nil {
