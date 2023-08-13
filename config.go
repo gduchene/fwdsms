@@ -35,9 +35,8 @@ type Twilio struct {
 }
 
 func loadConfig(r io.Reader) (*Config, error) {
-	dec := yaml.NewDecoder(r)
 	cfg := &Config{}
-	if err := dec.Decode(cfg); err != nil {
+	if err := yaml.NewDecoder(r).Decode(cfg); err != nil {
 		return nil, err
 	}
 	return cfg, nil
