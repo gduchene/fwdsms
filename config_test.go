@@ -5,13 +5,15 @@ import (
 	_ "embed"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"go.awhk.org/core"
 )
 
 //go:embed config_example.yaml
 var cfg []byte
 
-func TestConfig(t *testing.T) {
+func TestConfig(s *testing.T) {
+	t := core.T{T: s}
+
 	_, err := loadConfig(bytes.NewReader(cfg))
-	assert.NoError(t, err)
+	t.AssertErrorIs(nil, err)
 }

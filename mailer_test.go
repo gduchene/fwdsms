@@ -8,12 +8,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/google/go-cmp/cmp"
 
+	"go.awhk.org/core"
 	"go.awhk.org/fwdsms/pkg/twilio"
 )
 
-func TestMailer_newEmail(t *testing.T) {
+func TestMailer_newEmail(s *testing.T) {
+	t := core.T{T: s, Options: []cmp.Option{cmp.AllowUnexported(email{})}}
+
 	m := newMailer(&Config{
 		Message: Message{
 			From:    "fwdsms@example.com",
@@ -48,5 +51,5 @@ Hello World!`,
 			"",
 		}, "\r\n")),
 	}
-	assert.Equal(t, wants, m.newEmail(sms))
+	t.AssertEqual(wants, m.newEmail(sms))
 }

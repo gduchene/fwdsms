@@ -10,80 +10,84 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"go.awhk.org/core"
 )
 
-func TestFilter_CheckRequestSignature(t *testing.T) {
+func TestFilter_CheckRequestSignature(s *testing.T) {
+	t := core.T{T: s}
+
 	th := &Filter{[]byte("token"), EmptyResponseHandler}
 
-	t.Run("Good Signature (POST)", func(t *testing.T) {
-		assert.NoError(t, th.CheckRequestSignature(newRequest(Post)))
+	t.Run("Good Signature (POST)", func(t *core.T) {
+		t.AssertErrorIs(nil, th.CheckRequestSignature(newRequest(Post)))
 	})
 
-	t.Run("Good Signature (GET)", func(t *testing.T) {
-		assert.NoError(t, th.CheckRequestSignature(newRequest(Get)))
+	t.Run("Good Signature (GET)", func(t *core.T) {
+		t.AssertErrorIs(nil, th.CheckRequestSignature(newRequest(Get)))
 	})
 
-	t.Run("Missing Header", func(t *testing.T) {
+	t.Run("Missing Header", func(t *core.T) {
 		r := newRequest(Post)
 		r.Header.Del("X-Twilio-Signature")
-		assert.ErrorIs(t, th.CheckRequestSignature(r), ErrMissingHeader)
+		t.AssertErrorIs(ErrMissingHeader, th.CheckRequestSignature(r))
 	})
 
-	t.Run("Bad Base64", func(t *testing.T) {
+	t.Run("Bad Base64", func(t *core.T) {
 		r := newRequest(Post)
 		r.Header.Set("X-Twilio-Signature", "Very suspicious Base64 header.")
-		assert.ErrorIs(t, th.CheckRequestSignature(r), ErrBase64)
+		t.AssertErrorIs(ErrBase64, th.CheckRequestSignature(r))
 	})
 
-	t.Run("Signature Mismatch", func(t *testing.T) {
+	t.Run("Signature Mismatch", func(t *core.T) {
 		r := newRequest(Post)
 		r.Header.Set("X-Twilio-Signature", "dpE7iSS3LEQo72hCT34eBRt3UEI=")
-		assert.ErrorIs(t, th.CheckRequestSignature(r), ErrSignatureMismatch)
+		t.AssertErrorIs(ErrSignatureMismatch, th.CheckRequestSignature(r))
 	})
 }
 
-func TestFilter_ServeHTTP(t *testing.T) {
+func TestFilter_ServeHTTP(s *testing.T) {
+	t := core.T{T: s}
+
 	th := &Filter{[]byte("token"), EmptyResponseHandler}
 
-	t.Run("Good Signature (POST)", func(t *testing.T) {
+	t.Run("Good Signature (POST)", func(t *core.T) {
 		w := httptest.NewRecorder()
 		th.ServeHTTP(w, newRequest(Post))
-		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Equal(t, "text/xml", w.Result().Header.Get("Content-Type"))
-		assert.Equal(t, "<Response/>", w.Body.String())
+		t.AssertEqual(http.StatusOK, w.Code)
+		t.AssertEqual("text/xml", w.Result().Header.Get("Content-Type"))
+		t.AssertEqual("<Response/>", w.Body.String())
 	})
 
-	t.Run("Good Signature (GET)", func(t *testing.T) {
+	t.Run("Good Signature (GET)", func(t *core.T) {
 		w := httptest.NewRecorder()
 		th.ServeHTTP(w, newRequest(Get))
-		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Equal(t, "text/xml", w.Result().Header.Get("Content-Type"))
-		assert.Equal(t, "<Response/>", w.Body.String())
+		t.AssertEqual(http.StatusOK, w.Code)
+		t.AssertEqual("text/xml", w.Result().Header.Get("Content-Type"))
+		t.AssertEqual("<Response/>", w.Body.String())
 	})
 
-	t.Run("Missing Header", func(t *testing.T) {
+	t.Run("Missing Header", func(t *core.T) {
 		w := httptest.NewRecorder()
 		r := newRequest(Post)
 		r.Header.Del("X-Twilio-Signature")
 		th.ServeHTTP(w, r)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		t.AssertEqual(http.StatusBadRequest, w.Code)
 	})
 
-	t.Run("Bad Base64", func(t *testing.T) {
+	t.Run("Bad Base64", func(t *core.T) {
 		w := httptest.NewRecorder()
 		r := newRequest(Post)
 		r.Header.Set("X-Twilio-Signature", "Very suspicious Base64 header.")
 		th.ServeHTTP(w, r)
-		assert.Equal(t, http.StatusBadRequest, w.Code)
+		t.AssertEqual(http.StatusBadRequest, w.Code)
 	})
 
-	t.Run("Signature Mismatch", func(t *testing.T) {
+	t.Run("Signature Mismatch", func(t *core.T) {
 		w := httptest.NewRecorder()
 		r := newRequest(Post)
 		r.Header.Set("X-Twilio-Signature", "dpE7iSS3LEQo72hCT34eBRt3UEI=")
 		th.ServeHTTP(w, r)
-		assert.Equal(t, http.StatusForbidden, w.Code)
+		t.AssertEqual(http.StatusForbidden, w.Code)
 	})
 }
 
