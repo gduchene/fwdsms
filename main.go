@@ -11,11 +11,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"golang.org/x/sys/unix"
 
 	"go.awhk.org/fwdsms/pkg/twilio"
 	"go.awhk.org/gosdd"
@@ -39,7 +39,7 @@ func main() {
 	}
 
 	done := make(chan os.Signal, 1)
-	signal.Notify(done, os.Interrupt, unix.SIGTERM)
+	signal.Notify(done, os.Interrupt, syscall.SIGTERM)
 
 	sms := make(chan twilio.SMS)
 
