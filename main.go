@@ -7,7 +7,6 @@ import (
 	"context"
 	"flag"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,7 +15,6 @@ import (
 
 	"go.awhk.org/core"
 	"go.awhk.org/fwdsms/pkg/twilio"
-	"go.awhk.org/gosdd"
 )
 
 var cfgFilename = flag.String("c", "/etc/fwdsms.yaml", "configuration file")
@@ -53,14 +51,7 @@ func main() {
 
 	srv := http.Server{Handler: m}
 	go func() {
-		ln, err := listenSD()
-		if err != nil {
-			log.Fatalf("Failed to listen on systemd socket: %s.", err)
-		}
-		if ln == nil {
-			ln = listenEnv(cfg)
-		}
-		if err = srv.Serve(ln); err != nil && err != http.ErrServerClosed {
+		if err = srv.Serve(core.Must(core.Listen(cfg.Twilio.Address))); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Failed to serve HTTP: %s.", err)
 		}
 	}()
@@ -76,36 +67,4 @@ func main() {
 	if err := srv.Shutdown(ctx); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Failed to properly shut down the HTTP server: %v.", err)
 	}
-}
-
-func listenEnv(cfg *Config) net.Listener {
-	if cfg.Twilio.Address != "" && cfg.Twilio.Address[0] == '/' {
-		ln, err := net.Listen("unix", cfg.Twilio.Address)
-		if err != nil {
-			log.Fatalf("Could not set up UNIX listener: %s.", err)
-		}
-		if err := os.Chmod(cfg.Twilio.Address, 0666); err != nil {
-			log.Fatalf("Could not set up permissions on UNIX socket: %s.", err)
-		}
-		return ln
-	}
-	ln, err := net.Listen("tcp", cfg.Twilio.Address)
-	if err != nil {
-		log.Fatalf("Could not set up TCP listener: %s.", err)
-	}
-	return ln
-}
-
-func listenSD() (net.Listener, error) {
-	fds, err := gosdd.SDListenFDs(true)
-	if err != nil {
-		if err == gosdd.ErrNoSDSupport {
-			return nil, nil
-		}
-		return nil, err
-	}
-	if len(fds) == 0 {
-		return nil, nil
-	}
-	return net.FileListener(fds[0])
 }
