@@ -34,6 +34,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not load the configuration: %v.", err)
 	}
+	if err := fd.Close(); err != nil {
+		log.Printf("Failed to close configuration file: %v.", err)
+	}
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, unix.SIGTERM)
